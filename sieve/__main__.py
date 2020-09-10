@@ -30,11 +30,13 @@ def main():
     
     if (not args['--regex']==None ) and (not args['--output']==None) :
         print("running quick filter")
+        from sieve.filtering.filters import main
 
-    else if args['--startup'] :
+        main()
+    elif args['--startup'] :
         print("installing for startup")
 
-    else if args['--daemon'] :
+    elif args['--daemon'] :
         print("creating process")
 
 
