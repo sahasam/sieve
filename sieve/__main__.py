@@ -24,7 +24,7 @@ def main():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    args = docopt(__doc__, version=f"pyvr version {__version__}", options_first=True)
+    args = docopt(__doc__, version=f"sieve version {__version__}", options_first=True)
     logger.debug(args)
     print(args)
     
