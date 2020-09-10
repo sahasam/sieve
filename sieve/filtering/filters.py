@@ -15,10 +15,11 @@ import os
 import re
 import sys
 import threading
+import time
 
 from docopt import docopt
-
-import sieve.utils.utils
+from watchdog.observers import Observer
+from watchdog.events import RegexMatchingEventHandler
 
 #simple filter which does nothing more than
 #change directory
@@ -28,7 +29,7 @@ class BaseFilter :
         self.regex = regex
         self.output_dir = output_dir
 
-        self.regex = self.verifyInputs()
+        self.regex = self._verifyInputs()
 
     def execute (self):
         dir_list = os.listdir(self.target_dir)
@@ -38,7 +39,7 @@ class BaseFilter :
             os.replace(f"{self.target_dir}{match}",
                 f"{self.output_dir}{match}")
     
-    def verifyInputs(self) :
+    def _verifyInputs(self) :
         #target_dir must be a valid directory and end in '/'
         valid_target = os.path.isdir(self.target_dir)
         if not valid_target :
@@ -58,6 +59,39 @@ class BaseFilter :
             raise
 
         return comp_re
+
+class BackgroundHandler :
+    def __init__ (self, target_dir, regex, output_dir) :
+        self.target_dir = target_dir
+        self.regex = regex
+        self.output_dir = output_dir
+
+        #get list of BaseFilters for every regex pattern and output_dir combo
+        
+        ehandler = RegexMatchingEventHandler(regexes=[f"{self.regex}"],
+            ignore_regexes=[],
+            ignore_directories=True,
+            case_sensitive=True)
+        ehandler.on_modified = self._on_modified
+        ehandler.on_created = self._on_created
+
+        observer = Observer()
+        observer.schedule(event_handler=ehandler, path=target_dir)
+        observer.start()
+
+        try:
+            while True :
+                time.sleep(1)
+        except KeyboardInterrupt :
+            observer.stop()
+        
+        observer.join()
+    
+    def _on_modified(self, event) :
+        print(f"found something was moved: {event}")
+    
+    def _on_created(self, event) :
+        print(f"found something was created: {event}")
 
 
 #deals with large folders to filter (>50 files)
@@ -85,14 +119,16 @@ class InputError(Exception) :
         super().__init__(message)
 
 
-def singleFilter () :
-    argv = sys.argv[1:]
-    args = docopt(__doc__, argv=argv)
-
+def singleFilter (args) :
     bf = BaseFilter(target_dir="./",
-                    regex=args['--regex'],
-                    output_dir=args['--output'])
+        regex=args['--regex'],
+        output_dir=args['--output'])
     bf.execute()
+
+def daemonFilter (args) :
+    bh = BackgroundHandler(target_dir="./",
+        regex=args['--regex'],
+        output_dir=args['--output'])
 
 def fileFilter () :
     argv = sys.argv[1:]

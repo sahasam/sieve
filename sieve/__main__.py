@@ -32,14 +32,15 @@ def main():
         print("running quick filter")
         from sieve.filtering.filters import singleFilter
 
-        singleFilter()
+        singleFilter(args)
     elif args['--startup'] :
         #put script info into startup file
         print("installing for startup")
 
     elif args['--daemon'] :
-        #create file listener. Runs in background
-        print("creating process")
+        from sieve.filtering.filters import daemonFilter
+
+        daemonFilter(args)
 
 
 
