@@ -6,12 +6,13 @@ Files placed in download folders will automatically filter
 and keep your folder neat
 
 Usage:
-sieve -r <regex> -o <path> [-d]
-sieve -i <file> [-ds]
+sieve -r <regex> -o <path> [-d] [-t <target>]
+sieve -i <file> [-ds] [-t <target>]
 
 -r <regex>, --regex <regex>         regex expression to match encoding
 -o <path>, --output <path>          destination folder for regex exp [default: ./filtered]
 -i <file>, --input <file>           file with regex expression and destination folders
+-t <target>, --target <target>      directory to sort files from [default: ./]
 -d, --daemon                        run in the background
 -s, --startup                       run command on startup (implies daemon)
 """
@@ -30,30 +31,20 @@ def main():
     logger.debug(args)
     
     if (not args['--regex']==None ) and (not args['--output']==None) :
-        print("running quick filter")
-        # from sieve.filtering.filters import singleFilter
+        from sieve.filtering.filters import singleFilter
 
-        # singleFilter(args)
-        from sieve.filtering.filters import daemonFilter
-        from sieve.utils.daemonize import daemonize
-
-        #daemonize()
-        daemonFilter(args)
-
+        singleFilter(args)
     elif args['--startup'] :
         #put script info into startup file
         print("installing for startup")
 
     elif args['--daemon'] :
         from sieve.filtering.filters import daemonFilter
-        from utils.daemonize import daemonize
+        # from sieve.utils.daemonize import daemonize
 
-        daemonize()
+        # daemonize()
         daemonFilter(args)
+    else :
+        from sieve.filtering.filters import fileFilter
 
-
-
-
-
-
-
+        fileFilter(args)

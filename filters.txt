@@ -8,10 +8,6 @@
 ;
 ; This text file holds all the filter rules for the sieve daemon. Deleting
 ; this file won't break the program until the computer is restarted.
-; 
-;
-;
-;
 ;
 ; Downleads <- poll every o'clock
 ; filters.txt
@@ -19,12 +15,10 @@
 ; xyz.xyz
 ; xyz.xyz
 ; PDFs
-;- ece220
-;    ece220_[discussion/lab/lecture]_[id]_[completed/raw]
-;- ece210
-;- phys214
-;- clcv224
-;- chem103
+;- class1
+;    [classname]_[discussion/lab/lecture]_[id]_[completed/raw]
+;- class2
 ;
 
-.*\.txt                 /Users/sahasmunamala/dev/sieve/output/
+hello\.txt                 /Users/sahasmunamala/dev/sieve/output/
+goodbye\.txt               /Users/sahasmunamala/dev/sieve/filtered/
