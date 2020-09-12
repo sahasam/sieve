@@ -1,16 +1,3 @@
-"""
-filters.py
-
-Usage:
-sieve -r <regex> -o <path>
-sieve -i <file> [-ds]
-
--r <regex>, --regex <regex>         regex expression to match encoding
--o <path>, --output <path>          destination folder for regex exp [default: ./filtered]
--i <file>, --input <file>           file with regex expression and destination folders
--d, --daemon                        run in the background
--s, --startup                       run command on startup (implies daemon)
-"""
 import os
 import re
 import sys
@@ -29,17 +16,19 @@ class BaseFilter :
         self.regex = regex
         self.output_dir = output_dir
 
-        self.regex = self._verifyInputs()
+        self.regex = self._verify_inputs()
 
     def execute (self):
+        #create a list of matching filenames
         dir_list = os.listdir(self.target_dir)
         matches = list(filter(self.regex.match, dir_list))
 
+        #move every detected match
         for match in matches :
             os.replace(f"{self.target_dir}{match}",
                 f"{self.output_dir}{match}")
     
-    def _verifyInputs(self) :
+    def _verify_inputs(self) :
         #target_dir must be a valid directory and end in '/'
         valid_target = os.path.isdir(self.target_dir)
         if not valid_target :
@@ -58,22 +47,48 @@ class BaseFilter :
         except re.error as e:
             raise
 
-        return comp_re
+        return comp_re                      # return the compiled regex for convenience
+
+
 
 class FileFilter :
-    def __init__ (input_file, target_dir) :
-        print("hello world")
+    def __init__ (self, input_file, target_dir) :
+        self.input_file = input_file
+        self.target_dir = target_dir
+        self.filters = []
+
+        self._parse_input_file()
+
+    
+    def _parse_input_file(self) :
+        #very simple parser. Good enough for now. Make more
+        #robust later.
+        with open(self.input_file) as fp:
+            cnt = 0
+            for line in fp:
+                if(line.startswith(';')) :
+                    continue                # line is a comment and should be ignored
+                
+                tokens = line.split()
+                if len(tokens) != 2 :
+                    continue                # incorrect amount of arguments. Ignored
+
+                self.filters.append((tokens[0], tokens[1]))
+
+
 
 class BackgroundHandler :
-    def __init__ (self, target_dir, regex, output_dir) :
+    def __init__ (self, target_dir, input_file, output_dir) :
         self.target_dir = target_dir
-        self.regex = regex
+        self.input_file = input_file
         self.output_dir = output_dir
 
         #get list of BaseFilters for every regex pattern and output_dir combo
+        ff = FileFilter(input_file, target_dir)
+        regex_list = [ff.filters[0][0]]
         
-        ehandler = RegexMatchingEventHandler(regexes=[f"{self.regex}"],
-            ignore_regexes=[],
+        ehandler = RegexMatchingEventHandler(regexes=regex_list,
+            ignore_regexes=['filters\.txt'],
             ignore_directories=True,
             case_sensitive=True)
         ehandler.on_modified = self._on_detected
@@ -83,25 +98,19 @@ class BackgroundHandler :
         observer.schedule(event_handler=ehandler, path=target_dir)
         observer.start()
 
+        #TODO : FIX THIS LUDRICROUS CODE
         try:
             while True :
                 time.sleep(1)
         except KeyboardInterrupt :
             observer.stop()
-        
+
         observer.join()
 
-    
     def _on_detected(self, event) :
         print(event.src_path, event.src_path.split('/')[-1])
         os.replace(f"{event.src_path}",
             f"{self.output_dir}{event.src_path.split('/')[-1]}")
-
-#class to read input file and create necessary
-# filters
-class FilterConfig :
-    def __init__ (inFile='./filters.txt') :
-        self.inFile = inputFile
 
 class InputError(Exception) :
     """Exception raised for errors in the input
@@ -124,11 +133,5 @@ def singleFilter (args) :
 
 def daemonFilter (args) :
     bh = BackgroundHandler(target_dir="/Users/sahasmunamala/dev/sieve",
-        regex=args['--regex'],
-        output_dir=args['--output'])
-
-def fileFilter () :
-    argv = sys.argv[1:]
-    args = docopt(__doc__, argv=argv)
-
-    print ("filtering from file")
+        input_file="/Users/sahasmunamala/dev/sieve/filters.txt",
+        output_dir="/Users/sahasmunamala/dev/sieve/output/")

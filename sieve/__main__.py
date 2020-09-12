@@ -6,7 +6,7 @@ Files placed in download folders will automatically filter
 and keep your folder neat
 
 Usage:
-sieve -r <regex> -o <path>
+sieve -r <regex> -o <path> [-d]
 sieve -i <file> [-ds]
 
 -r <regex>, --regex <regex>         regex expression to match encoding
@@ -16,6 +16,7 @@ sieve -i <file> [-ds]
 -s, --startup                       run command on startup (implies daemon)
 """
 import logging
+import time
 from docopt import docopt
 
 from sieve import __version__
@@ -23,23 +24,31 @@ from sieve import __version__
 def main():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
+    logging.basicConfig(filename='/Users/sahasmunamala/Library/Logs/sieve.log')
 
     args = docopt(__doc__, version=f"sieve version {__version__}", options_first=True)
     logger.debug(args)
-    print(args)
     
     if (not args['--regex']==None ) and (not args['--output']==None) :
         print("running quick filter")
-        from sieve.filtering.filters import singleFilter
+        # from sieve.filtering.filters import singleFilter
 
-        singleFilter(args)
+        # singleFilter(args)
+        from sieve.filtering.filters import daemonFilter
+        from sieve.utils.daemonize import daemonize
+
+        #daemonize()
+        daemonFilter(args)
+
     elif args['--startup'] :
         #put script info into startup file
         print("installing for startup")
 
     elif args['--daemon'] :
         from sieve.filtering.filters import daemonFilter
+        from utils.daemonize import daemonize
 
+        daemonize()
         daemonFilter(args)
 
 
