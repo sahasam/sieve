@@ -23,8 +23,8 @@ from sieve import __version__
 
 def main():
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    logging.basicConfig(filename='/Users/sahasmunamala/Library/Logs/sieve.log')
+    logging.basicConfig(filename='/Users/sahasmunamala/Library/Logs/sieve.log',
+        level=logging.DEBUG)
 
     args = docopt(__doc__, version=f"sieve version {__version__}", options_first=True)
     logger.debug(args)

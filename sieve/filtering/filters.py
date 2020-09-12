@@ -58,12 +58,11 @@ class FileFilter :
         self.filters = []
 
         self._parse_input_file()
-
-    
+  
     def _parse_input_file(self) :
         #very simple parser. Good enough for now. Make more
         #robust later.
-        with open(self.input_file) as fp:
+        with open(os.path.join(self.target_dir, self.input_file)) as fp:
             cnt = 0
             for line in fp:
                 if(line.startswith(';')) :
@@ -72,9 +71,23 @@ class FileFilter :
                 tokens = line.split()
                 if len(tokens) != 2 :
                     continue                # incorrect amount of arguments. Ignored
+                
+                if self._verify_inputs(regex=tokens[0], output_dir=tokens[1]) :
+                    self.filters.append((tokens[0], tokens[1]))
+    
+    def _verify_inputs(self, regex, output_dir) :
+        #verify regex is valid
+        try:
+            comp_re = re.compile(regex)
+        except re.error as e:
+            raise
 
-                self.filters.append((tokens[0], tokens[1]))
-
+        #verify output directory is a real directory
+        if not os.path.isdir(output_dir) :
+            raise InputError(output_dir,
+                f"{output_dir} is not a directory")
+        
+        return True
 
 
 class BackgroundHandler :
