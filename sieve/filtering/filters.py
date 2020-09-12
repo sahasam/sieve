@@ -60,6 +60,10 @@ class BaseFilter :
 
         return comp_re
 
+class FileFilter :
+    def __init__ (input_file, target_dir) :
+        print("hello world")
+
 class BackgroundHandler :
     def __init__ (self, target_dir, regex, output_dir) :
         self.target_dir = target_dir
@@ -72,8 +76,8 @@ class BackgroundHandler :
             ignore_regexes=[],
             ignore_directories=True,
             case_sensitive=True)
-        ehandler.on_modified = self._on_modified
-        ehandler.on_created = self._on_created
+        ehandler.on_modified = self._on_detected
+        ehandler.on_created = self._on_detected
 
         observer = Observer()
         observer.schedule(event_handler=ehandler, path=target_dir)
@@ -86,25 +90,18 @@ class BackgroundHandler :
             observer.stop()
         
         observer.join()
+
     
-    def _on_modified(self, event) :
-        print(f"found something was moved: {event}")
-    
-    def _on_created(self, event) :
-        print(f"found something was created: {event}")
-
-
-#deals with large folders to filter (>50 files)
-class MultithreadedFilter (BaseFilter) :
-    def __init__ (self, regex, output):
-        super.__init__(regex, output)
-
+    def _on_detected(self, event) :
+        print(event.src_path, event.src_path.split('/')[-1])
+        os.replace(f"{event.src_path}",
+            f"{self.output_dir}{event.src_path.split('/')[-1]}")
 
 #class to read input file and create necessary
 # filters
 class FilterConfig :
-    def __init__ ():
-        print("Under Construction")
+    def __init__ (inFile='./filters.txt') :
+        self.inFile = inputFile
 
 class InputError(Exception) :
     """Exception raised for errors in the input
@@ -126,7 +123,7 @@ def singleFilter (args) :
     bf.execute()
 
 def daemonFilter (args) :
-    bh = BackgroundHandler(target_dir="./",
+    bh = BackgroundHandler(target_dir="/Users/sahasmunamala/dev/sieve",
         regex=args['--regex'],
         output_dir=args['--output'])
 
