@@ -7,14 +7,15 @@ and keep your folder neat
 
 Usage:
 sieve -r <regex> -o <path> [-d] [-t <target>]
-sieve -i <file> [-ds] [-t <target>]
+sieve [-t <target>] [-f <file>] [-ds]
 
+-t <target>, --target <target>      directory to sort files from [default: ./]
 -r <regex>, --regex <regex>         regex expression to match encoding
 -o <path>, --output <path>          destination folder for regex exp [default: ./filtered]
--i <file>, --input <file>           file with regex expression and destination folders
--t <target>, --target <target>      directory to sort files from [default: ./]
+-f <file>, --filename <file>        name of file with regex expression and destination folders [default: filters.txt]
 -d, --daemon                        run in the background
 -s, --startup                       run command on startup (implies daemon)
+-h, --help
 """
 import logging
 import time
@@ -31,20 +32,24 @@ def main():
     logger.debug(args)
     
     if (not args['--regex']==None ) and (not args['--output']==None) :
-        from sieve.filtering.filters import singleFilter
+        from sieve.filtering.filters import baseFilter
 
-        singleFilter(args)
+        bf = BaseFilter(target_dir=args['--target'],
+            regex=args['--regex'],
+            output_dir=args['--output'])
+        bf.execute()
     elif args['--startup'] :
-        #put script info into startup file
         print("installing for startup")
 
     elif args['--daemon'] :
-        from sieve.filtering.filters import daemonFilter
-        # from sieve.utils.daemonize import daemonize
+        from sieve.filtering.filters import BackgroundHandler
 
-        # daemonize()
-        daemonFilter(args)
+        bh = BackgroundHandler(target_dir=args['--target'],
+            input_fname=args['--filename'])
+        bh.execute()
     else :
-        from sieve.filtering.filters import fileFilter
+        from sieve.filtering.filters import FileFilter
 
-        fileFilter(args)
+        ff = FileFilter(input_file=args['--filename'],
+            target_dir=args['--target'])
+        ff.execute()

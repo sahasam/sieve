@@ -5,6 +5,7 @@ import threading
 import time
 
 from docopt import docopt
+from sieve.utils.utils import create_filter_file
 
 POLL_DELAY = 5 #seconds
 
@@ -47,7 +48,8 @@ class BaseFilter :
         except re.error as e:
             raise
 
-        return comp_re                      # return the compiled regex for convenience
+        # return the compiled regex for convenience
+        return comp_re
 
 
 
@@ -75,7 +77,7 @@ class FileFilter :
                 try: 
                     comp_re = self._verify_inputs(regex=tokens[0], output_dir=tokens[1])
                     self.filters.append([comp_re, tokens[1]])
-                except Exception as e:
+                except re.error as e:
                     print("Failed to verify inputs. Skipping")
                 
     def _verify_inputs(self, regex, output_dir) :
@@ -99,14 +101,18 @@ class FileFilter :
 
 
 
-#TODO : FIX THIS LUDRICROUS CODE
 class BackgroundHandler :
-    def __init__ (self, target_dir, input_file) :
+    def __init__ (self, target_dir, input_fname="filters.txt") :
         self.target_dir = target_dir
-        self.input_file = input_file
+        if not os.path.isdir(self.target_dir) :
+            raise InputError(self.target_dir, f"{self.output_dir} is not a directory")
 
-        #get list of BaseFilters for every regex pattern and output_dir combo
-        ff = FileFilter(input_file, target_dir)
+        self.input_file = os.path.join(self.target_dir, input_fname)
+        if not os.path.isfile(self.input_file) :
+            create_filter_file(target_dir=self.target_dir)
+            raise InputError(self.target_dir, f"{input_fname} does not exist in {self.target_dir}")
+
+        ff = FileFilter(self.input_file, self.target_dir)
         ff.execute()
         self.filters = ff.filters
 
@@ -114,7 +120,7 @@ class BackgroundHandler :
         try:
             while True :
                 time.sleep(POLL_DELAY)
-                #poll directory for matches
+                #poll directory for matches, and check file for updates
                 dir_list = os.listdir(self.target_dir)
                 matches = []
                 for rule in self.filters :
@@ -129,21 +135,10 @@ class BackgroundHandler :
         except KeyboardInterrupt :
             exit(1)
 
-    def _on_detected(self, event) :
-        print("detected a file: ", event.src_path)
-        filename = event.src_path.split('/')[-1]
-        output_dir = ""
-        for rule in self.filters :
-            if rule[0].match(filename) :
-                output_dir = rule[1]
-        
-        os.replace(f"{event.src_path}",
-            os.path.join(output_dir, event.src_path.split('/')[-1]))
-
 
 
 class InputError(Exception) :
-    """Exception raised for errors in the input
+    """Exception raised for errors in the script input
 
     Attributes:
         expression -- input expression in which the error occurred
@@ -153,21 +148,3 @@ class InputError(Exception) :
         self.expression = expression
         self.message = message
         super().__init__(message)
-
-
-def singleFilter(args) :
-    bf = BaseFilter(target_dir="./",
-        regex=args['--regex'],
-        output_dir=args['--output'])
-    bf.execute()
-
-def daemonFilter(args) :
-    bh = BackgroundHandler(target_dir="./",
-        input_file=args['--input'])
-    bh.execute()
-
-def fileFilter(args) :
-    ff = FileFilter(input_file=args['--input'],
-        target_dir="./")
-
-    ff.execute()
