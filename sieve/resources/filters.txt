@@ -1,0 +1,24 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                            SIEVE FILTER FILE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;
+; THE SIEVE
+; made by: Sahas Munamala
+;
+; This text file holds all the filter rules for the sieve daemon. Deleting
+; this file won't break the program until the computer is restarted.
+;
+; Downleads <- poll every o'clock
+; filters.txt
+; xyz.xyz
+; xyz.xyz
+; xyz.xyz
+; PDFs
+;- class1
+;    [class1]_[discussion/lab/lecture]_[id]_[completed/raw]
+;- class2
+;
+
+hello\.txt                 /Users/sahasmunamala/Downloads/output/
+goodbye\.txt               /Users/sahasmunamala/Downloads/filtered/
