@@ -18,17 +18,12 @@ sieve [-t <target>] [-f <file>] [-ds]
 -s, --startup                       run command on startup (implies daemon)
 -h, --help
 """
-import logging
 import time
 from docopt import docopt
 
 from sieve import __version__
 
 def main():
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(filename='/Users/sahasmunamala/Library/Logs/sieve.log',
-        level=logging.DEBUG)
-
     args = docopt(__doc__, version=f"sieve version {__version__}", options_first=True)
     logger.debug(args)
     
