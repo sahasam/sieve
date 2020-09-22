@@ -1,6 +1,7 @@
 build/
 dist/
 env/
+sieve.egg-info/
 
 **/__pycache__
 
