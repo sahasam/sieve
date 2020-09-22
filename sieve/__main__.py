@@ -25,7 +25,6 @@ from sieve import __version__
 
 def main():
     args = docopt(__doc__, version=f"sieve version {__version__}", options_first=True)
-    logger.debug(args)
     
     if (not args['--regex']==None ) and (not args['--output']==None) :
         from sieve.filtering.filters import baseFilter
