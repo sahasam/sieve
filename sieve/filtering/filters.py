@@ -9,10 +9,39 @@ from sieve.utils.utils import create_filter_file
 
 POLL_DELAY = 5 #seconds
 
-#simple filter which does nothing more than
-#change directory
 class BaseFilter :
+    """
+    Class that is used to represent a filter for a single rule.
+
+    This class accepts either a single rule as an input. When executed,
+    the filter searches the target directory for files matching the regex 
+    expression, and moves matches to to the destination folder.
+
+    Attributes:
+    target_dir : str
+        path to directory that will be filtered
+    regex : str
+        regex expression used to find matches
+    output_dir : str
+        path to directory that matches will be put into
+    
+    Methods:
+    execute() :
+        executes the filter rule once
+    """
+
     def __init__(self, target_dir, regex=None, output_dir=None, rule=[None, None]) :
+        """
+        Parameters:
+        regex : str
+            regex pattern used to find matches
+        output_dir : str
+            path to directory that matches will be put into
+        rule : tuple
+            tuple containing the regex expression and the output directory
+            in that order
+        """
+
         self.target_dir = target_dir
         self.regex = regex if regex is not None else rule[0]
         self.output_dir = output_dir if output_dir is not None else rule[1]
@@ -20,6 +49,8 @@ class BaseFilter :
         self.regex = self._verify_inputs()
 
     def execute(self):
+        """Executes the filter rule once."""
+
         #create a list of matching filenames
         dir_list = os.listdir(self.target_dir)
         matches = list(filter(self.regex.match, dir_list))
@@ -54,7 +85,36 @@ class BaseFilter :
 
 
 class FileFilter :
-    def __init__(self, input_file, target_dir) :
+    """
+    Class that represents a filter for a .txt file of rules
+
+    This class excepts a file as an input, and parses the text inside of it.
+    If rules are found, then they are represented as a tuple and placed in 
+    the self.filters list.
+
+    Attributes:
+    input_file : str
+        name of the file that holds the filter rules. Defaults to "filters.txt"
+    target_dir : str
+        path to directory that holds filters.txt and where filtering will happen 
+    filters : list
+        list of filter rules. Stored as a tuple of (regex, destination folder)
+
+    Methods:
+    execute()
+        executes all the filter rules in the file once.
+    """
+
+    def __init__(self, input_file='filters.txt', target_dir) :
+        """
+        Parameters:
+
+        input_file : str
+            name of the file that holds the filter rules. Defaults to "filters.txt"
+        target_dir : str
+            path to directory that holds filters.txt and where filtering will happen
+        """
+
         self.input_file = input_file
         self.target_dir = target_dir
         self.filters = []
@@ -62,6 +122,8 @@ class FileFilter :
         self._parse_input_file()
   
     def _parse_input_file(self) :
+        """Parse the input file in the target directory to extract rules."""
+        
         #very simple parser. Good enough for now. Make more
         #robust later.
         with open(os.path.join(self.target_dir, self.input_file)) as fp :
@@ -81,6 +143,8 @@ class FileFilter :
                     print("Failed to verify inputs. Skipping")
                 
     def _verify_inputs(self, regex, output_dir) :
+        """Verify that the rule dected in the file is valid."""
+
         #verify regex is valid
         try:
             comp_re = re.compile(regex)
@@ -95,6 +159,8 @@ class FileFilter :
         return comp_re
     
     def execute(self) :
+        """Execute all the filter rules in the file once."""
+
         for rule in self.filters :
             bf = BaseFilter(self.target_dir, rule=rule)
             bf.execute()
@@ -102,7 +168,34 @@ class FileFilter :
 
 
 class BackgroundHandler :
+    """
+    Object that constantly checks a folder for matches and moves them.
+
+    This class uses a file as an input, but unlike the FileFilter object, a 
+    BackgroundHandler will constantly poll a folder to filter it. A single 
+    BackgroundHandler takes a single thread to execute. Will change this
+    in future updates.
+
+    Attributes:
+    target_dir : str
+        path to directory that holds the filter file and where filtering will happen
+    input_fname : str
+        name of the file that holds filter rules. Defaults to 'filters.txt'
+    
+    Methods:
+    execute()
+        constantly polls a file for matches every preset amount of time. 
+    """
+
     def __init__ (self, target_dir, input_fname="filters.txt") :
+    """
+    Parameters:
+    target_dir : str
+        path to directory in which files will be filtered from
+    input_fname : str
+        name of file that stores all the filter rules. Located in target_dir.
+    """
+
         self.target_dir = target_dir
         if not os.path.isdir(self.target_dir) :
             raise InputError(self.target_dir, f"{self.output_dir} is not a directory")
@@ -117,6 +210,7 @@ class BackgroundHandler :
         self.filters = ff.filters
 
     def execute(self) :
+    """constantly poll a directory and filter matches"""
         try:
             while True :
                 time.sleep(POLL_DELAY)
@@ -131,7 +225,8 @@ class BackgroundHandler :
                         os.replace(os.path.join(self.target_dir, match),
                             os.path.join(rule[1], match))
 
-                #move matches
+        # this except is only useful when debugging. When running
+        # in daemon mode, this exception will never be thrown.
         except KeyboardInterrupt :
             exit(1)
 
@@ -141,9 +236,12 @@ class InputError(Exception) :
     """Exception raised for errors in the script input
 
     Attributes:
-        expression -- input expression in which the error occurred
-        message -- explanation of error
+    expression: str
+        input expression in which the error occurred
+    message : str
+        explanation of error
     """
+
     def __init__(self, expression, message) :
         self.expression = expression
         self.message = message
