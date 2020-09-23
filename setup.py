@@ -3,8 +3,9 @@ from setuptools import find_packages
 
 setup(
     name='sieve',
-    packages=find_packages(),
+    packages=['sieve'],
     package_data={'': ['*.txt']},
+    install_requires=['docopt','pathtools'],
     version='1.0.0',
     author='Sahas Munamala',
     author_email='munamalasahas@gmail.com',
