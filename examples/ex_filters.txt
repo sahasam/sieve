@@ -8,7 +8,6 @@
 ;
 ; This text file holds all the filter rules for the sieve daemon. Deleting
 ; this file won't break the program until the computer is restarted.
-;
-; example rules:
-;   hello\.txt                 /Users/sahasmunamala/Downloads/output/
-;   goodbye\.txt               /Users/sahasmunamala/Downloads/filtered/
+
+hello\.txt                 /Users/sahasmunamala/Downloads/output/
+goodbye\.txt               /Users/sahasmunamala/Downloads/filtered/

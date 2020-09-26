@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>sieve</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string><++></string>
+        <string>--target</string>
+        <string><++></string>
+        <string>--filename</string>
+        <string>filters.txt</string>
+        <string>--daemon<string>
+    </array>
+    <key>KeepAlive</key>
+    <true/>
+    <key>UserName</key>
+    <string>root</string>
+</dict>
+</plist>
