@@ -6,11 +6,11 @@
     <string>sieve</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Library/Frameworks/Python.framework/Versions/3.8/bin/sieve</string>
+        <string><++></string>
         <string>--target</string>
-        <string>/Users/sahasmunamala/Downloads</string>
+        <string><++></string>
         <string>--filename</string>
-        <string>filters.txt</string>
+        <string><++></string>
         <string>--daemon<string>
     </array>
     <key>KeepAlive</key>
